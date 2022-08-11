@@ -45,4 +45,10 @@ Download external dependencies for use in a script.
 
 #### shlib:deps:git
 #### shlib:deps:http-tar
-#### shlib:deps:standard
+#### shlib:deps:http-file
+#### shlib:deps:common:jq
+#### shlib:deps:common:gum
+#### shlib:deps:common:fzf
+#### shlib:deps:common:rg
+#### shlib:deps:common:fdfind
+#### shlib:deps:common

@@ -4,6 +4,7 @@ if [[ ! "$SHLIB_ROOT" =~ ^/ ]]; then
     SHLIB_ROOT="$(pwd)/$SHLIB_ROOT/"
 fi
 
+# TODO: This uses gnu specific readlink options and is not portable.
 SHLIB_ROOT="$(readlink --canonicalize-missing --no-newline "${SHLIB_ROOT}")"
 
 function shlib:fail() {

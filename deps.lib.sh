@@ -29,7 +29,7 @@ function shlib:deps:http-tar() {
 
     if [[ ! -s "$target_file" ]]; then
         mkdir -p "$download_dir"
-        >&2 curl -L --silent "$url" -o "$target_file"
+        >&2 curl --fail  -L --silent "$url" -o "$target_file"
     fi
 
     if [[ ! -d "$extract_dir" ]]; then
@@ -53,52 +53,106 @@ function shlib:deps:http-file() {
     local target_file="$download_dir/$name"
     if [[ ! -x "$target_file" ]]; then
         mkdir -p "$download_dir"
-        >&2 curl -L --silent "$url" -o "$target_file"
+        >&2 curl --fail -L --silent "$url" -o "$target_file"
         chmod +x "$target_file"
     fi
 
     echo "$download_dir"
 }
 
-function shlib:deps:standard() {
-    #TODO: Make the urls a bit more dynamic (e.g. build url and fix subdirs based on version and architecture)
+function shlib:deps:github-release-url() {
+    local user="$1"
+    local repo="$2"
+    local release="$3"
+    local file="$4"
+    echo -n "https://github.com/$user/$repo/releases/download/$release/$file"
+}
 
+function shlib:deps:common:gum() {
+    local version=0.4.0
+    local processor=$(uname -p)
+    local os=$(uname -s | tr '[[:upper:]]' '[[:lower:]]')
+    local url="$(shlib:deps:github-release-url charmbracelet gum v${version} gum_${version}_${os}_${processor}.tar.gz)"
     local gumdir="$(shlib:deps:http-tar \
     gum \
-    v0.4.0 \
-    https://github.com/charmbracelet/gum/releases/download/v0.4.0/gum_0.4.0_linux_x86_64.tar.gz \
+    v${version} \
+    ${url} \
     gum
     )"
 
+    PATH="$gumdir:$PATH"
+}
+
+function shlib:deps:common:fzf() {
+    local version=0.32.1
+    # TODO: The architecture naming scheme for fzf differs from that reported by uname. :(
+    local processor=amd64
+    local os=$(uname -s | tr '[[:upper:]]' '[[:lower:]]')
+    local url="$(shlib:deps:github-release-url junegunn fzf ${version} fzf-${version}-${os}-${processor}.tar.gz)"
     local fzfdir="$(shlib:deps:http-tar \
     fzf \
-    0.32.1 \
-    https://github.com/junegunn/fzf/releases/download/0.32.1/fzf-0.32.1-linux_amd64.tar.gz \
+    ${version} \
+    ${url} \
     fzf
     )"
 
+    PATH="$fzfdir:$PATH"
+}
+
+function shlib:deps:common:ripgrep() {
+    local version=13.0.0
+    local processor=$(uname -p)
+    local os=$(uname -s | tr '[[:upper:]]' '[[:lower:]]')
+    #TODO: Naming scheme involves reference to the used libc. 
+    local url="$(shlib:deps:github-release-url BurntSushi ripgrep ${version} ripgrep-${version}-${processor}-unknown-${os}-musl.tar.gz)"
     local rgdir="$(shlib:deps:http-tar \
     ripgrep \
-    13.0.0 \
-    https://github.com/BurntSushi/ripgrep/releases/download/13.0.0/ripgrep-13.0.0-x86_64-unknown-linux-musl.tar.gz \
-    ripgrep-13.0.0-x86_64-unknown-linux-musl/rg )"
-    rgdir="$rgdir/ripgrep-13.0.0-x86_64-unknown-linux-musl"
-
-    local fddir="$(
-        shlib:deps:http-tar \
-        fdfind \
-        v8.4.0 \
-        https://github.com/sharkdp/fd/releases/download/v8.4.0/fd-v8.4.0-x86_64-unknown-linux-gnu.tar.gz \
-        fd-v8.4.0-x86_64-unknown-linux-gnu/fd
+    ${version} \
+    ${url} \
+    ripgrep-${version}-${processor}-unknown-${os}-musl/rg
     )"
-    fddir="$fddir/fd-v8.4.0-x86_64-unknown-linux-gnu"
 
+    rgdir="$rgdir/ripgrep-${version}-${processor}-unknown-${os}-musl"
+    PATH="$rgdir:$PATH"
+}
+
+function shlib:deps:common:fdfind() {
+    local version=8.4.0
+    local processor=$(uname -p)
+    local os=$(uname -s | tr '[[:upper:]]' '[[:lower:]]')
+    #TODO: Naming scheme involves reference to the used libc. 
+    local url="$(shlib:deps:github-release-url shakdp fd v${version} fd-v${version}-${processor}-unknown-${os}-gnu.tar.gz)"
+    local fddir="$(shlib:deps:http-tar \
+    fdfind \
+    v${version} \
+    ${url} \
+    fd-v${version}-${processor}-unknown-${os}-gnu/fd
+    )"
+
+    fddir="$fddir/fd-v${version}-${processor}-unknown-${os}-gnu"
+
+    PATH="$fddir:$PATH"
+}
+
+function shlib:deps:common:jq() {
+    local version=1.6
+    #TODO: Best way to find this?
+    local bits=64
+    local os=$(uname -s | tr '[[:upper:]]' '[[:lower:]]')
+    local url=$(shlib:deps:github-release-url stedolan jq jq-${version} jq-${os}${bits})
     local jqdir="$(
         shlib:deps:http-file \
         jq \
         jq-1.6 \
-        https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+        ${url}
     )"
+    PATH="$jqdir:$PATH"
+}
 
-    PATH="$gumdir:$fzfdir:$rgdir:$fddir:$jqdir:$PATH"
+function shlib:deps:common() {
+    shlib:deps:common:gum
+    shlib:deps:common:fzf
+    shlib:deps:common:ripgrep
+    shlib:deps:common:fdfind
+    shlib:deps:common:jq
 }
