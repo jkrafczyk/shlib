@@ -4,6 +4,22 @@ A small library of things that are often required in shellscripts. Written for `
 
 ## Usage
 
+### Bundle
+
+Start your script with: 
+```
+#!/usr/bin/env zsh
+set -euo pipefail
+
+if [[ ! -f ~/.cache/shlib/shlib-v0.1.0.sh ]]; then
+    mkdir -p ~/.cache/shlib/
+    curl --fail --silent -L https://github.com/jkrafczyk/shlib/releases/download/v0.1.0/lib.bundle.sh -o ~/.cache/shlib/shlib-v0.1.0.sh
+fi
+source ~/.cache/shlib/shlib-v0.1.0.sh
+```
+
+### Using the repository
+
 * Clone this repository somewhere
 * Source the `lib.sh` file in your script
 * Load required components using `shlib:module:load`

@@ -12,4 +12,3 @@ which rg
 which fd
 which gum
 which jq
-

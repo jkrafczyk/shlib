@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+modules=(
+    font
+    usage
+    deps
+    all
+)
+
 (
 echo "######## lib.sh ########"
 cat lib.sh
 echo
-for filename in ./*.lib.sh; do
-    echo "######## $filename ########"
-    modname=$(basename "$filename" ".lib.sh")
-    cat $filename
-    printf "\nSHLIB_MODULE_LOADED_%s=1\n" "$modname"
+for module in ${modules[@]}; do
+    echo "######## ${module}.lib.sh ########"
+    cat ${module}.lib.sh
+    printf "\nSHLIB_MODULE_LOADED_%s=1\n" "$module"
 done
 ) > lib.bundle.sh
