@@ -1,0 +1,22 @@
+name: "Publish library bundle"
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  bundle:
+    name: bundle
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - run: bash make-bundle.sh
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: lib.bundle.sh
+        asset_name: lib.bundle.sh
+        tag: ${{ github.ref }}
+        overwrite: true
