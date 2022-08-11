@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 set -euo pipefail
 
 (
@@ -9,6 +9,6 @@ for filename in ./*.lib.sh; do
     echo "######## $filename ########"
     modname=$(basename "$filename" ".lib.sh")
     cat $filename
-    echo "\nSHLIB_MODULE_LOADED_$modname=1\n"
+    printf "\nSHLIB_MODULE_LOADED_%s=1\n" "$modname"
 done
 ) > lib.bundle.sh
